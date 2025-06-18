@@ -1,3 +1,4 @@
+#pragma once
 
 #pragma once
 
@@ -21,4 +22,4 @@ double NormalizeAngle(double angle);
 
 double DeltasToDegrees(double deltaX, double deltaY);
 
-int util_CollisionDist(int x, double y, double angle, int x1, int y1, int x2, int y2);
+int util_CollisionDist(int plrX, double plrY, double plrAngle, int x1, int y1, int x2, int y2, int* pX, int* pY);
