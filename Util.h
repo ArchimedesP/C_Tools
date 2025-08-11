@@ -12,7 +12,11 @@ void text_ClearString(char string[]);
 
 int text_GetSize(char string[]);
 
+int text_StringToInt(char string[]);
+
 void text_AppendString(char string1[], char string2[]);
+
+void text_AppendChar(char string1[], char char1);
 
 void text_AppendInt(char string[], int num);
 
