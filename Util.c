@@ -15,18 +15,44 @@ void text_ClearString(char string[]) {
 
 int text_GetSize(char string[]) {
 
-	int size = 0;
 	for (int i = 0; i < string_maxLength; i++) {
 
 		if (string[i] == 0) {
-			size = i;
-			break;
+			return i;
 		};
 
 	};
 
-	return (size);
+	return (0);
 }
+
+
+long int text_StringToInt(char string[]) {	// up to 9 digits
+
+	int lenString = text_GetSize(string);
+
+	if (lenString > 9) {
+		lenString = 9;
+	};
+
+	int num = 0;
+
+	for (int i = 0; i < lenString; i++) {
+
+		int tNum = (int)(string[i] - 48);
+
+		for (int n = 0; n < (lenString - i - 1); n++) {
+
+			tNum *= 10;
+
+		};
+
+		num += tNum;
+
+	};
+
+	return num;
+};
 
 
 void text_AppendString(char string1[], char string2[]) {
@@ -63,6 +89,32 @@ void text_AppendString(char string1[], char string2[]) {
 		string1[iEnd + i] = string2[i];
 
 	};
+
+	return;
+}
+
+
+void text_AppendChar(char string1[], char char1) {
+
+	if (string_maxLength < 0) {
+		return;
+	};
+
+	int iEnd = 0;
+	for (int i = 0; i < string_maxLength; i++) {
+
+		if (!string1[i]) {
+			iEnd = i;
+			break;
+		};
+
+	};
+
+	if (string_maxLength <= 0) {
+		iEnd = 0;
+	};
+
+	string1[iEnd] = char1;
 
 	return;
 }
