@@ -2,6 +2,99 @@
 
 #include "Util.h"
 
+int num_CompareTolerance(double num1, double num2, double tol) {
+
+
+	if (num1 < (num2 - tol) != num1 < (num2 + tol)) {
+		return 1;
+	};
+
+	return 0;
+};
+
+
+int text_Compare(char string1[], char string2[]) {
+
+	if (text_GetSize(string1) != text_GetSize(string2)) {
+		return 0;
+	};
+
+	int len = text_GetSize(string1);
+
+	for (int i = 0; i < len; i++) {
+
+		if (string1[i] != string2[i]) {
+			return 0;
+		};
+
+	};
+
+	return 1;
+};
+
+
+int text_CompareBulk(char string[], char stringList[]) {
+
+	char word[string_maxLength] = { 0 };
+
+	int lenWord = text_GetSize(stringList);
+
+	for (int w = 0; w < lenWord; w++) {
+
+		if (stringList[w] != ' ') {
+			text_AppendChar(word, stringList[w]);
+		};
+
+		if ((stringList[w] != ' ') && (w != lenWord - 1)) {
+			continue;
+		};
+
+		if (text_Compare(string, word)) {
+			return 1;
+		};
+
+		text_ClearString(word);
+
+
+	};
+
+
+	return 0;
+};
+
+
+void text_Shift(char string1[], int i, int n) {
+
+	if (n == 0) {
+		return;
+	};
+
+	if (n < 0) {
+
+		int len = text_GetSize(string1);
+
+		for (int l = i - n - 1; l < len - n + 1; l++) {
+
+			string1[l + n + 1] = string1[l + 1];
+			//l--;
+
+		};
+
+		//string1[len - 1] = 0;
+		//string1[len - 2] = 0;
+		return;
+
+	};
+
+	for (int l = string_maxLength - n - 2; l >= i; l--) {
+		string1[l + n] = string1[l];
+		string1[l] = ' ';
+	};
+
+	return;
+
+}
+
 
 void text_ClearString(char string[]) {
 
@@ -27,28 +120,146 @@ int text_GetSize(char string[]) {
 }
 
 
-long int text_StringToInt(char string[]) {	// up to 9 digits
+int text_StringToInt(char string[]) {	// up to 9 digits
 
-	int lenString = text_GetSize(string);
+	int nDigits = 0;
 
-	if (lenString > 9) {
-		lenString = 9;
+	for (int i = 0; i < string_maxLength; i++) {
+
+		if (nDigits >= 9) {
+			break;
+		};
+
+		if (string[i] == 0) {
+			break;
+		};
+
+		if (string[i] == '-' && i == 0) {
+			continue;
+		};
+
+		if (string[i] < '0' || string[i] > '9') {
+			break;
+		};
+
+
+		nDigits++;
+
 	};
 
+
 	int num = 0;
+	int iDigit = 0;
 
-	for (int i = 0; i < lenString; i++) {
+	for (int i = 0; i < string_maxLength; i++) {
 
-		int tNum = (int)(string[i] - 48);
+		if (iDigit >= nDigits) {
+			break;
+		};
 
-		for (int n = 0; n < (lenString - i - 1); n++) {
+		if (string[i] == 0) {
+			break;
+		};
 
-			tNum *= 10;
+		if (string[i] < '0' || string[i] > '9') {
+			continue;
+		};
+
+		int digit = (int)(string[i] - '0');
+
+		for (int n = 0; n < (nDigits - iDigit - 1); n++) {
+
+			digit *= 10;
 
 		};
 
-		num += tNum;
+		num += digit;
+		iDigit++;
 
+	};
+
+	if (string[0] == '-') {
+		num *= -1;
+	};
+
+	return num;
+};
+
+
+double text_StringToDouble(char string[]) {	// up to 6 decimal points	// 123456789.123456
+
+	double num = 0;
+
+	int iPoint = -1;
+	for (int i = 0; i < string_maxLength; i++) {
+
+		if (string[i] == '.') {
+			iPoint = i;
+			break;
+		};
+
+	};
+
+	num += text_StringToInt(string);
+
+	if (num < 0) {
+		num *= -1;
+	};
+
+	if (iPoint < 0) {
+		return num;
+	};
+
+
+
+
+	int nDigits = 0;
+
+	for (int i = iPoint + 1; i < string_maxLength; i++) {
+
+		if (nDigits >= 6) {
+			break;
+		};
+
+		if (string[i] < '0' || string[i] > '9') {
+			break;
+		};
+
+		nDigits++;
+
+	};
+
+	int iDigit = 0;
+
+	for (int i = iPoint + 1; i < string_maxLength; i++) {
+
+		if (iDigit >= nDigits) {
+			break;
+		};
+
+		if (string[i] == 0) {
+			break;
+		};
+
+		if (string[i] < '0' || string[i] > '9') {
+			continue;
+		};
+
+		double digit = (int)(string[i] - '0');
+
+		for (int n = 0; n < iDigit + 1; n++) {
+
+			digit /= 10.0;
+
+		};
+
+		num += digit;
+		iDigit++;
+
+	};
+
+	if (string[0] == '-') {
+		num *= -1;
 	};
 
 	return num;
@@ -96,14 +307,10 @@ void text_AppendString(char string1[], char string2[]) {
 
 void text_AppendChar(char string1[], char char1) {
 
-	if (string_maxLength < 0) {
-		return;
-	};
-
 	int iEnd = 0;
 	for (int i = 0; i < string_maxLength; i++) {
 
-		if (!string1[i]) {
+		if (string1[i] == 0) {
 			iEnd = i;
 			break;
 		};
@@ -113,6 +320,10 @@ void text_AppendChar(char string1[], char char1) {
 	if (string_maxLength <= 0) {
 		iEnd = 0;
 	};
+
+	//if (iEnd >= string_maxLength - 1) {	// idk why, but can't append at last index
+		//return;
+	//};
 
 	string1[iEnd] = char1;
 
@@ -167,9 +378,16 @@ void text_AppendInt(char string[], int num) {
 
 void text_AppendDouble(char string[], double num) {
 
+	if (num < 0) {
+		text_AppendChar(string, '-');
+		num *= -1;
+	};
+
+	//	num = (num);
+
 	text_AppendInt(string, num);
-	text_AppendString(string, ".");
-	text_AppendInt(string, abs((num - (int)(num)) * 1000));	// decimals
+	text_AppendChar(string, '.');
+	text_AppendInt(string, abs((num - (int)(num)) * 1000000));	// max accuracy of 6 decimals (.123456)
 
 	return;
 }
