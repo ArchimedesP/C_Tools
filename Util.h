@@ -8,11 +8,30 @@
 
 #define string_maxLength 100
 
+
+#pragma once
+
+#include <Math.h>
+
+// contains functions for string manipulation
+
+#define string_maxLength 128
+
+int num_CompareTolerance(double num1, double num2, double tol);
+
+int text_Compare(char string1[], char string2[]);
+
+int text_CompareBulk(char string[], char stringList[]);	// compare 1 string with list of strings (ex. text_CompareBulk("dog", "tree dog house") would return true)
+
+void text_Shift(char string1[], int i, int n);	// shifts text at pos 'i' by 'n' amount (n may be < 0)
+
 void text_ClearString(char string[]);
 
 int text_GetSize(char string[]);
 
 int text_StringToInt(char string[]);
+
+double text_StringToDouble(char string[]);
 
 void text_AppendString(char string1[], char string2[]);
 
