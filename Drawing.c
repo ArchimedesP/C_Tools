@@ -6,9 +6,6 @@
 #include "Util.h"
 
 
-
-#define string_maxLength 100
-
 int text_bitmap[128][25] = {
 
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	//space
@@ -116,8 +113,8 @@ int text_bitmap[128][25] = {
 };
 
 
-void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int text_xScale, int text_yScale, int color) {
-	
+void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int text_xScale, int text_yScale, int color, float opacity) {
+
 	if (color < 0) {
 		color = 0x00FFFFFF;
 	};
@@ -190,8 +187,7 @@ void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int 
 						continue;
 					};
 
-					frame->pixels[y * frame->width + x] = color;
-
+					frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
 
 				};
 
@@ -246,7 +242,7 @@ void frame_DrawLine(struct frameStruct* frame, int x1, int y1, int x2, int y2, i
 
 // draw a line, but looped back if passes boundary
 void frame_DrawLineModulus(struct frameStruct* frame, int x1, int y1, int x2, int y2, int color) {
-	
+
 	if (color < 0) {
 		color = 0x00FFFFFF;
 	};
@@ -262,7 +258,7 @@ void frame_DrawLineModulus(struct frameStruct* frame, int x1, int y1, int x2, in
 
 	//t goes from 0 - 1; 1 is endpoint
 	for (double t = 0; t <= 1; t += tIncrement) {
-	
+
 		int x = (int)(x1 + deltaX * t);
 		int y = (int)(y1 + deltaY * t);
 
@@ -304,7 +300,7 @@ void frame_DrawRect(struct frameStruct* frame, int x1, int y1, int x2, int y2, i
 }
 
 
-void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int color) {
+void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int color, float opacity) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -334,7 +330,7 @@ void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int
 				continue;
 			};
 
-			frame->pixels[y * frame->width + x] = color;
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
 
 		};
 
@@ -374,13 +370,13 @@ void frame_DrawRectAFilled(struct frameStruct* frame, int xAnchor, int yAnchor, 
 	};
 
 	if (angle == 90) {
-		frame_DrawRectFilled(frame, xAnchor + horizontalShift, yAnchor + verticalShift, xAnchor + width + horizontalShift, yAnchor + height + verticalShift, color);
+		frame_DrawRectFilled(frame, xAnchor + horizontalShift, yAnchor + verticalShift, xAnchor + width + horizontalShift, yAnchor + height + verticalShift, color, 0);
 		return;
 	};
 
 
 	if (angle == 270) {
-		frame_DrawRectFilled(frame, xAnchor - horizontalShift, yAnchor - verticalShift, xAnchor - width - horizontalShift, yAnchor - height - verticalShift, color);
+		frame_DrawRectFilled(frame, xAnchor - horizontalShift, yAnchor - verticalShift, xAnchor - width - horizontalShift, yAnchor - height - verticalShift, color, 0);
 		return;
 	};
 
@@ -453,7 +449,7 @@ void frame_DrawRectAFilled(struct frameStruct* frame, int xAnchor, int yAnchor, 
 };
 
 
-void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int color) {
+void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int color, float opacity) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -476,7 +472,7 @@ void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radiu
 				continue;
 			};
 
-			frame->pixels[y * frame->width + x] = color;
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
 
 		};
 
@@ -486,8 +482,64 @@ void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radiu
 }
 
 
-void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int x3, int y3, int color) {
+void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int sliceAngle, int angle, int color, float opacity) {
+
+	if (color < 0) {
+		color = 0x00FFFFFF;
+	};
+
+	sliceAngle /= 2;
+	int angle1 = angle - sliceAngle;
+	int angle2 = angle + sliceAngle;
+
+	angle1 = NormalizeAngle(angle1);
+	angle2 = NormalizeAngle(angle2);
 	
+	int flip = 0;
+	if (angle2 < sliceAngle * 2) {
+		flip = 1;
+	};
+
+	for (int x = x1 - radius; x < x1 + radius; x++) {
+
+		if (x < 0 || x >= frame->width) {
+			continue;
+		};
+
+		for (int y = y1 - radius; y < y1 + radius; y++) {
+
+			if ((y < 0) || (y >= frame->height)) {
+				continue;
+			};
+
+			// (y-h)^2 + (x-h)^2 = r^2
+			if (sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) > radius) {
+				continue;
+			};
+	
+			int ang = DeltasToDegrees(x - x1, y - y1);
+			ang = NormalizeAngle(ang);
+			
+			if (flip && !((ang < angle1) == (ang < angle2))) {
+				continue;
+			};
+
+			if (!flip && (ang < angle1) == (ang < angle2)) {
+				continue;
+			};
+			
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
+			
+		};
+
+	};
+
+	return;
+};
+
+
+void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int x3, int y3, int color) {
+
 	if (color < 0) {
 		color = 0x00FFFFFF;
 	};
