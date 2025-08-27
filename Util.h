@@ -1,17 +1,7 @@
 #pragma once
-
-#pragma once
-
 #include <Math.h>
-
-// contains functions for string manipulation
 
 #define string_maxLength 100
-
-
-#pragma once
-
-#include <Math.h>
 
 // contains functions for string manipulation
 
@@ -46,3 +36,4 @@ double NormalizeAngle(double angle);
 double DeltasToDegrees(double deltaX, double deltaY);
 
 int util_CollisionDist(int plrX, double plrY, double plrAngle, int x1, int y1, int x2, int y2, int* pX, int* pY);
+
