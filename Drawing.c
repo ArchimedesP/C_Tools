@@ -113,7 +113,7 @@ int text_bitmap[128][25] = {
 };
 
 
-void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int text_xScale, int text_yScale, int color, float opacity) {
+void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int text_xScale, int text_yScale, int color, float transparency) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -187,7 +187,7 @@ void frame_DrawText(struct frameStruct* frame, int x1, int y1, char text[], int 
 						continue;
 					};
 
-					frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
+					frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)((1 - transparency) * 100)));
 
 				};
 
@@ -300,7 +300,7 @@ void frame_DrawRect(struct frameStruct* frame, int x1, int y1, int x2, int y2, i
 }
 
 
-void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int color, float opacity) {
+void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int y2, int color, float transparency) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -330,7 +330,7 @@ void frame_DrawRectFilled(struct frameStruct* frame, int x1, int y1, int x2, int
 				continue;
 			};
 
-			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)((1 - transparency) * 100)));
 
 		};
 
@@ -373,7 +373,6 @@ void frame_DrawRectAFilled(struct frameStruct* frame, int xAnchor, int yAnchor, 
 		frame_DrawRectFilled(frame, xAnchor + horizontalShift, yAnchor + verticalShift, xAnchor + width + horizontalShift, yAnchor + height + verticalShift, color, 0);
 		return;
 	};
-
 
 	if (angle == 270) {
 		frame_DrawRectFilled(frame, xAnchor - horizontalShift, yAnchor - verticalShift, xAnchor - width - horizontalShift, yAnchor - height - verticalShift, color, 0);
@@ -449,7 +448,7 @@ void frame_DrawRectAFilled(struct frameStruct* frame, int xAnchor, int yAnchor, 
 };
 
 
-void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int color, float opacity) {
+void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int color, float transparency) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -472,7 +471,7 @@ void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radiu
 				continue;
 			};
 
-			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)((1 - transparency) * 100)));
 
 		};
 
@@ -482,7 +481,7 @@ void frame_DrawCircleFilled(struct frameStruct* frame, int x1, int y1, int radiu
 }
 
 
-void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int sliceAngle, int angle, int color, float opacity) {
+void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int radius, int sliceAngle, int angle, int color, float transparency) {
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
@@ -494,7 +493,7 @@ void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int r
 
 	angle1 = NormalizeAngle(angle1);
 	angle2 = NormalizeAngle(angle2);
-	
+
 	int flip = 0;
 	if (angle2 < sliceAngle * 2) {
 		flip = 1;
@@ -516,10 +515,10 @@ void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int r
 			if (sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) > radius) {
 				continue;
 			};
-	
+
 			int ang = DeltasToDegrees(x - x1, y - y1);
 			ang = NormalizeAngle(ang);
-			
+
 			if (flip && !((ang < angle1) == (ang < angle2))) {
 				continue;
 			};
@@ -527,9 +526,9 @@ void frame_DrawSemiCircleFilled(struct frameStruct* frame, int x1, int y1, int r
 			if (!flip && (ang < angle1) == (ang < angle2)) {
 				continue;
 			};
-			
-			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)(opacity * 100) % 100));
-			
+
+			frame->pixels[y * frame->width + x] = (RGB_BLEND(color, frame->pixels[y * frame->width + x], (int)((1 - transparency) * 100)));
+
 		};
 
 	};
@@ -542,6 +541,21 @@ void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2,
 
 	if (color < 0) {
 		color = 0x00FFFFFF;
+	};
+
+	/*
+	if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0 || x3 < 0 || y3 < 0) {		// if out of bounds
+		return;
+	};
+	if (x1 >= frame->width || y1 >= frame->height || x2 >= frame->width || y2 >= frame->height || x3 >= frame->width || y3 >= frame->height) {
+		return;
+	};*/
+
+	if (y1 == y2 || y1 == y3 || y2 == y3) {	// smooth out straight lines
+		y1++;
+	};
+	if (x1 == x2 || x1 == x3 || x2 == x3) {
+		x1++;
 	};
 
 	int startX = x1;
@@ -576,6 +590,28 @@ void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2,
 		endY = y3;
 	};
 
+	float angle1 = DeltasToDegrees(x2 - x1, y2 - y1);
+	float angle2 = DeltasToDegrees(x3 - x1, y3 - y1);
+
+	angle1 = NormalizeAngle(angle1);
+	angle2 = NormalizeAngle(angle2);
+
+	int flip1 = 0;
+	if (abs(angle2 - angle1) > 180 ) {
+		flip1++;
+	};
+
+	float angle3 = DeltasToDegrees(x1 - x2, y1 - y2);
+	float angle4 = DeltasToDegrees(x3 - x2, y3 - y2);
+	
+	angle3 = NormalizeAngle(angle3);
+	angle4 = NormalizeAngle(angle4);
+
+	int flip2 = 0;
+	if (abs(angle4 - angle3) > 180) {
+		flip2++;
+	};
+
 	for (int x = startX; x < endX; x++) {
 
 		if (x < 0 || x >= frame->width) {
@@ -588,25 +624,23 @@ void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2,
 				continue;
 			};
 
-			int inVertice = 1;
+			float angle = DeltasToDegrees(x - x1, y - y1);
+			angle = NormalizeAngle(angle);
 
-			int angle1 = DeltasToDegrees(x2 - x1, y2 - y1);
-			int angle2 = DeltasToDegrees(x3 - x1, y3 - y1);
-			int angle = DeltasToDegrees(x - x1, y - y1);
-
-			if (NormalizeAngle(angle) > NormalizeAngle(angle1) == NormalizeAngle(angle) > NormalizeAngle(angle2)) {
-				inVertice = 0;
+			if (flip1 && !((angle < angle1) == (angle < angle2))) {
+				continue;
+			};
+			if (!flip1 && (angle < angle1) == (angle < angle2)) {
+				continue;
 			};
 
-			angle1 = DeltasToDegrees(x1 - x2, y1 - y2);
-			angle2 = DeltasToDegrees(x3 - x2, y3 - y2);
 			angle = DeltasToDegrees(x - x2, y - y2);
+			angle = NormalizeAngle(angle);
 
-			if (NormalizeAngle(angle) > NormalizeAngle(angle1) == NormalizeAngle(angle) > NormalizeAngle(angle2)) {
-				inVertice = 0;
+			if (flip2 && !((angle < angle3) == (angle < angle4))) {
+				continue;
 			};
-
-			if (!inVertice) {
+			if (!flip2 && (angle < angle3) == (angle < angle4)) {
 				continue;
 			};
 
@@ -614,8 +648,7 @@ void frame_DrawTriangleFilled(struct frameStruct* frame, int x1, int y1, int x2,
 
 		};
 
-	};
-
+	};	
 
 	return;
 
